@@ -1,191 +1,261 @@
-# Trabalho Prático — Inteligência Artificial (FACOM/UFMS, 2026/1)
+# Trabalho Prático - Inteligência Artificial (FACOM/UFMS, 2026/1)
 
-**Aluno:** _Seu nome aqui_
-**Matrícula:** _Sua matrícula_
-**Nível:** Mestrado
-**Tema do projeto de pesquisa:** Uma Revisão Experimental de Métodos de Inteligência Artificial para Reconhecimento e Verificação de Padrões de Vocalizações de Aves Psittacidae
-**Tema da coleção (este trabalho):** Reconhecimento de vocalizações de aves com Inteligência Artificial (bioacústica) — ver nota de escopo abaixo
-
----
-
-## Sobre o projeto
-
-Este trabalho implementa o componente de **recuperação** ("R") de um sistema RAG aplicado à literatura científica sobre **reconhecimento de vocalizações de aves com Inteligência Artificial**. O sistema recebe uma consulta em texto livre e devolve uma lista ranqueada de artigos relevantes extraídos do ArXiv.
-
-**Nota sobre o escopo:** o projeto de pesquisa do aluno tem como motivação específica as vocalizações de aves da família Psittacidae (papagaios, araras, periquitos, etc.). No entanto, a literatura científica indexada no ArXiv sobre Psittacidae especificamente é extremamente escassa. Por isso, o escopo da coleção foi ampliado para **bioacústica de aves em geral** (reconhecimento de canto/chamado de aves com deep learning), domínio no qual Psittacidae se insere e que é diretamente transferível para o projeto de pesquisa do aluno. Essa decisão de escopo está documentada na metodologia do relatório, conforme exigido pela Seção 3-(a) do enunciado.
-
-A motivação é direta com o projeto de pesquisa: ao final do semestre, o sistema serve como um **retriever real para revisão bibliográfica** sobre aprendizado de máquina aplicado ao reconhecimento de vocalizações de aves.
+**Aluno:** Gabriel Colman  
+**Nível:** Mestrado  
+**Tema do projeto de pesquisa:** Uma Revisão Experimental de Métodos de Inteligência Artificial para Reconhecimento e Verificação de Padrões de Vocalizações de Aves Psittacidae  
+**Tema da coleção:** Reconhecimento de vocalizações de aves com Inteligência Artificial (bioacústica)
 
 ---
 
-## Estrutura do repositório
+## Sobre o Projeto
 
-```
+Este projeto implementa o componente de **recuperação** ("R") de um sistema RAG aplicado à literatura científica sobre **reconhecimento de vocalizações de aves com Inteligência Artificial**.
+
+O sistema recebe consultas em texto livre e devolve rankings de artigos científicos relacionados ao tema. A motivação original do projeto está nas vocalizações de aves da família **Psittacidae** (papagaios, araras, periquitos etc.). Como a literatura específica sobre Psittacidae no ArXiv é limitada, a coleção foi ampliada para bioacústica de aves em geral, mantendo relação direta com o tema de pesquisa.
+
+---
+
+## Estrutura do Projeto
+
+```text
 .
-├── README.md                   <- este arquivo
-├── requirements.txt            <- dependências Python
-├── CHECKLIST.md                <- checklist de submissão
-├── LINKS.txt                   <- link do vídeo e repositório
-│
-├── data/                       <- coleção (não versionar arquivos grandes no Git)
-│   ├── arxiv_raw.jsonl         <- artigos brutos coletados da API
-│   └── corpus.jsonl            <- corpus pré-processado
-│
-├── notebooks/
-│   ├── 01_coleta_arxiv.ipynb   <- coleta via API do ArXiv
-│   ├── 02_baseline_bm25.ipynb  <- recuperador BM25 (esparso)
-│   ├── 03_retrieval_knn.ipynb  <- recuperador KNN/denso (TF-IDF ou embeddings)
-│   ├── 04_modulo_aprofundamento.ipynb  <- módulo opcional (M1/M2/M3/M4/M5)
-│   └── runs/                   <- arquivos .trec gerados pelos modelos
-│       ├── bm25.trec
-│       └── knn.trec
-│
-├── src/                        <- código Python reutilizável
-│   ├── __init__.py
-│   ├── preprocessing.py        <- tokenização, stopwords, normalização
-│   ├── retrievers.py           <- classes BM25Retriever e KNNRetriever
-│   └── utils.py                <- helpers (leitura JSONL, escrita TREC, etc.)
-│
+├── Readme.md
+├── requirements.txt
+├── Trabalho_2026-1.pdf
+├── data/
+│   ├── arxiv_raw.jsonl
+│   ├── openalex_raw.jsonl
+│   ├── openalex_supplement.jsonl
+│   └── corpus.jsonl
 ├── eval/
-│   ├── queries.tsv             <- 10–20 queries de avaliação (criadas manualmente)
-│   ├── qrels.tsv               <- relevance judgments anotados manualmente
-│   └── evaluate.py             <- calcula P@k, R@k, MAP, nDCG (fornecido)
-│
-└── relatorio/
-    ├── relatorio.tex           <- artigo formato SBC (LaTeX)
-    └── relatorio.pdf           <- versão compilada para entrega
+│   ├── queries.tsv
+│   ├── qrels.tsv
+│   └── evaluate.py
+├── notebooks/
+│   ├── 01_coleta_arxiv.ipynb
+│   ├── 02_baseline_bm25.ipynb
+│   ├── 03_retrieval_knn.ipynb
+│   ├── 04_modulo_aprofundamento.ipynb
+│   └── runs/
+│       ├── bm25.trec
+│       ├── knn_tfidf.trec
+│       └── hybrid_rrf.trec
+├── scripts/
+│   ├── collect_supplement.py
+│   ├── rebuild_corpus.py
+│   └── gen_runs.py
+└── src/
+    ├── __init__.py
+    ├── preprocessing.py
+    ├── retrievers.py
+    └── utils.py
 ```
 
 ---
 
-## Escopo da coleção
+## Corpus
 
-| Parâmetro            | Valor                                                                                      |
-|----------------------|-------------------------------------------------------------------------------------------|
-| **Tema**             | IA para reconhecimento de vocalizações de aves (bioacústica), com Psittacidae como motivação de pesquisa |
-| **Palavras-chave**   | Ver lista completa abaixo                                                                  |
-| **Categorias ArXiv** | usadas apenas para estatística/inspeção (`cs.SD`, `cs.LG`, `eess.AS`, `cs.CL`, `cs.CV`, `q-bio.*`) — não filtram a coleta |
-| **Janela temporal**  | 2015–2026 (período de explosão do deep learning aplicado a bioacústica)                   |
-| **Tamanho alvo**     | ~2.000 artigos                                                                            |
-| **Tamanho final**    | _preencher após coleta_                                                                    |
+| Item | Valor |
+|---|---|
+| Tema | IA para reconhecimento de vocalizações de aves |
+| Escopo | Bioacústica de aves, com Psittacidae como motivação |
+| Fontes | ArXiv e OpenAlex |
+| Janela temporal | 2015-2026 |
+| Tamanho final | 1092 documentos |
+| Formato | JSONL |
+| Arquivo principal | `data/corpus.jsonl` |
 
-### Palavras-chave para coleta (multi-query)
+Cada documento do corpus possui, quando disponível:
 
-Para contornar o limite de resultados que o ArXiv aplica a queries compostas com muitos `OR`, a coleta é feita com **uma busca separada por keyword**, e os resultados são unidos e deduplicados por `arxiv_id`:
+- `arxiv_id`
+- `title`
+- `abstract`
+- `authors`
+- `categories`
+- `primary_category`
+- `published`
+- `doi`
 
-```python
-KEYWORDS = [
-    "bird sound",
-    "bird call",
-    "birdsong",
-    "bioacoustic",
-    "wildlife acoustic",
-    "parrot",
-]
+---
 
-YEAR_FROM = 2015
-YEAR_TO   = 2026
+## Modelos Implementados
+
+| Modelo | Tipo | Implementação | Saída |
+|---|---|---|---|
+| BM25 | Recuperação esparsa | `rank_bm25` | `notebooks/runs/bm25.trec` |
+| TF-IDF + KNN | Recuperação vetorial | `scikit-learn` + cosseno | `notebooks/runs/knn_tfidf.trec` |
+| Híbrido RRF | Fusão de rankings | BM25 + TF-IDF por Reciprocal Rank Fusion | `notebooks/runs/hybrid_rrf.trec` |
+
+O módulo de aprofundamento escolhido foi o **M5 - Ranking híbrido sparse+dense**, combinando BM25 e TF-IDF/KNN por **Reciprocal Rank Fusion (RRF)**.
+
+---
+
+## Como Executar Pelo Terminal
+
+Os comandos abaixo assumem que você está na raiz do projeto.
+
+### 1. Clonar o repositório
+
+```powershell
+git clone https://github.com/gabriel-colman/Trabalho_IA_POS.git
+cd Trabalho_IA_POS
 ```
 
-> **Nota:** A query de coleta é ampla e visa trazer o máximo de artigos da área de bioacústica de aves. As queries de avaliação (Seção abaixo) são específicas e focadas — são duas coisas distintas.
+### 2. Criar e ativar o ambiente virtual
 
----
+No Windows PowerShell:
 
-## Queries de avaliação (10–20 queries de teste)
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-As queries simulam perguntas reais de um pesquisador da área. A maioria cobre bioacústica de aves em geral; algumas focam especificamente em papagaios/Psittacidae quando há literatura suficiente:
+Se o PowerShell bloquear a ativação do ambiente, execute:
 
-| ID  | Query                                                                 |
-|-----|-----------------------------------------------------------------------|
-| q01 | deep learning for parrot call recognition                             |
-| q02 | convolutional neural network bird vocalization classification         |
-| q03 | mel spectrogram feature extraction bird sound                        |
-| q04 | transfer learning bioacoustics bird species identification           |
-| q05 | self-supervised learning bird audio representation                   |
-| q06 | attention mechanism bird call detection                               |
-| q07 | dataset benchmark bird sound recognition                             |
-| q08 | recurrent neural network bird song classification                    |
-| q09 | parrot vocalization pattern analysis machine learning           |
-| q10 | data augmentation audio bird species classification                  |
-| q11 | few-shot learning bird sound recognition                             |
-| q12 | transformer model audio classification wildlife                      |
-| q13 | explainability interpretability bird call classifier                 |
-| q14 | survey review deep learning bioacoustics                             |
-| q15 | passive acoustic monitoring bird species                           |
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\.venv\Scripts\Activate.ps1
+```
 
-> Estas queries serão usadas para gerar os pools de candidatos (top-10 de BM25 + top-10 de KNN), que serão anotados manualmente no `qrels.tsv`.
-
----
-
-## Modelos implementados
-
-| Modelo        | Tipo    | Biblioteca            | Arquivo de run   |
-|---------------|---------|-----------------------|------------------|
-| BM25          | Esparso | `rank_bm25`           | `runs/bm25.trec` |
-| KNN + TF-IDF  | Denso   | `scikit-learn`        | `runs/knn.trec`  |
-| _Módulo opt._ | —       | _a definir_           | `runs/modulo.trec` |
-
-**Conexões com a disciplina:**
-- BM25 → paradigma probabilístico (Naïve Bayes): ambos modelam relevância como probabilidade com independência entre termos
-- KNN/denso → aula de KNN: em vez de votar rótulo, os K vizinhos mais próximos são devolvidos como ranking
-- Módulo opcional → conforme escolha (regressão logística, clustering, regras de associação, etc.)
-
----
-
-## Como reproduzir
+No Linux ou macOS:
 
 ```bash
-# 1. Criar ambiente virtual e instalar dependências
-python -m venv .venv
-source .venv/bin/activate          # Linux/Mac
-# .venv\Scripts\activate           # Windows
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
+### 3. Instalar as dependências
+
+```powershell
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-# 2. Coletar a coleção (ajuste keywords no notebook se necessário)
-jupyter notebook notebooks/01_coleta_arxiv.ipynb
+Para abrir e executar os notebooks, instale também:
 
-# 3. Rodar o baseline BM25
-jupyter notebook notebooks/02_baseline_bm25.ipynb
+```powershell
+pip install notebook
+```
 
-# 4. Rodar o recuperador KNN
-jupyter notebook notebooks/03_retrieval_knn.ipynb
+### 4. Verificar se o código Python compila
 
-# 5. Avaliar os dois modelos
+```powershell
+python -m compileall src eval scripts
+```
+
+### 5. Gerar os arquivos de ranking
+
+Este comando usa o corpus em `data/corpus.jsonl`, lê as consultas em `eval/queries.tsv` e gera os arquivos `.trec` dentro de `notebooks/runs/`.
+
+```powershell
+python scripts/gen_runs.py
+```
+
+Arquivos esperados:
+
+```text
+notebooks/runs/bm25.trec
+notebooks/runs/knn_tfidf.trec
+notebooks/runs/hybrid_rrf.trec
+```
+
+### 6. Avaliar os modelos
+
+```powershell
+python eval/evaluate.py `
+  --qrels eval/qrels.tsv `
+  --runs notebooks/runs/bm25.trec notebooks/runs/knn_tfidf.trec notebooks/runs/hybrid_rrf.trec `
+  --k 10
+```
+
+No Linux ou macOS:
+
+```bash
 python eval/evaluate.py \
-    --qrels eval/qrels.tsv \
-    --runs notebooks/runs/bm25.trec notebooks/runs/knn.trec \
-    --k 10
+  --qrels eval/qrels.tsv \
+  --runs notebooks/runs/bm25.trec notebooks/runs/knn_tfidf.trec notebooks/runs/hybrid_rrf.trec \
+  --k 10
+```
 
-# 6. Demo rápida (uma query de exemplo)
-python src/demo.py "parrot call recognition convolutional neural network"
+O script imprime, para cada modelo:
+
+- `P@10`
+- `R@10`
+- `AP`
+- `nDCG@10`
+- média geral por sistema
+
+### 7. Executar os notebooks
+
+```powershell
+jupyter notebook
+```
+
+Ordem sugerida:
+
+1. `notebooks/01_coleta_arxiv.ipynb`
+2. `notebooks/02_baseline_bm25.ipynb`
+3. `notebooks/03_retrieval_knn.ipynb`
+4. `notebooks/04_modulo_aprofundamento.ipynb`
+
+---
+
+## Recriar o Corpus
+
+O projeto já contém o corpus consolidado em `data/corpus.jsonl`. Caso seja necessário reconstruí-lo a partir dos arquivos brutos:
+
+```powershell
+python scripts/rebuild_corpus.py
+python scripts/gen_runs.py
+```
+
+Para executar a coleta suplementar via OpenAlex:
+
+```powershell
+python scripts/collect_supplement.py
+python scripts/rebuild_corpus.py
+python scripts/gen_runs.py
 ```
 
 ---
 
-## Decisões de projeto
+## Avaliação
 
-- **Tema/escopo:** Bioacústica de aves (reconhecimento de vocalizações com IA), com Psittacidae como motivação de pesquisa do aluno — literatura específica sobre Psittacidae no ArXiv é escassa, então o escopo foi ampliado conforme documentado na seção "Sobre o projeto".
-- **Categorias do ArXiv:** usadas apenas para inspeção/estatística da coleção (predomínio observado: `cs.SD`, `cs.LG`, `eess.AS`).
-- **Janela temporal:** 2015–2026 — captura o período de adoção de deep learning em bioacústica.
-- **Pré-processamento:** lowercase, remoção de pontuação, remoção de stopwords em inglês (NLTK). Stemming avaliado experimentalmente.
-- **Modelos implementados:** BM25 (`k1=1.5`, `b=0.75`), KNN com TF-IDF + similaridade do cosseno.
-- **Módulo(s) de aprofundamento:** _a definir_
+As consultas de avaliação estão em:
+
+```text
+eval/queries.tsv
+```
+
+Os julgamentos de relevância estão em:
+
+```text
+eval/qrels.tsv
+```
+
+Formato do `qrels.tsv`:
+
+```text
+qid 0 doc_id relevancia
+```
+
+Onde:
+
+- `0` = não relevante
+- `1` = relevante
+- `2` = muito relevante
 
 ---
 
-## Uso de assistentes de IA generativa
+## Observações Importantes
 
-_Declaração a ser preenchida conforme o enunciado exige. Indicar onde e como foram utilizados assistentes de IA generativa (apoio à escrita, geração de trechos de código, sugestão de hiperparâmetros, etc.)._
-
----
-
-## Vídeo de apresentação
-
-URL: _https://..._
+- A pasta `.venv/` não deve ser enviada ao GitHub.
+- Arquivos de cache Python (`__pycache__/`) e checkpoints de notebooks também são ignorados.
+- Os rankings são salvos no formato TREC.
+- A avaliação depende da qualidade dos julgamentos manuais em `eval/qrels.tsv`.
 
 ---
 
-## Prazo de entrega
+## Uso de IA Generativa
 
-**23:59 do dia 19/06/2026** — AVA da disciplina (um único `.zip`).
+Assistentes de IA generativa foram utilizados como apoio para organização do projeto, revisão textual, sugestões de estrutura de código, documentação e identificação de pontos pendentes. A implementação e validação final permanecem sob responsabilidade do autor.
