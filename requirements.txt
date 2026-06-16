@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────
+# Trabalho Prático IA — FACOM/UFMS 2026/1
+# Tema: IA para Reconhecimento de Vocalizações de Psittacidae
+# Nível: Mestrado
+# ─────────────────────────────────────────────────────────────
+
+# --- Coleta de dados ---
+arxiv>=2.1.0
+
+# --- Manipulação de dados ---
+pandas>=2.0
+numpy>=1.24
+
+# --- Progresso e utilitários ---
+tqdm>=4.65
+
+# --- Pré-processamento de texto ---
+nltk>=3.8
+
+# --- Modelos de recuperação ---
+scikit-learn>=1.3       # TF-IDF + KNN + módulo opcional
+rank_bm25>=0.2.2        # BM25
+
+# --- Visualização (análise e relatório) ---
+matplotlib>=3.7
+seaborn>=0.12
+
+# ─────────────────────────────────────────────────────────────
+# MÓDULO OPCIONAL (Mestrado: escolher 1)
+# Descomente o bloco do módulo que você for implementar.
+# ─────────────────────────────────────────────────────────────
+
+# --- M5: Ranking híbrido sparse+dense (RECOMENDADO para Mestrado) ---
+# Nenhuma dependência extra além das acima.
+# Combinação por Reciprocal Rank Fusion (RRF) ou soma ponderada.
+
+# --- M1: Re-ranking por classificador supervisionado ---
+# Nenhuma dependência extra — usa scikit-learn (já listado acima).
+
+# --- M2: Agrupamento dos resultados ---
+# Nenhuma dependência extra — usa scikit-learn (já listado acima).
+
+# --- M3: Expansão de consulta via regras de associação ---
+# mlxtend>=0.23         # Apriori / FP-Growth para regras de associação
+
+# --- M4: Otimização de hiperparâmetros ---
+# Nenhuma dependência extra — grid/random search via scikit-learn.
+
+# ─────────────────────────────────────────────────────────────
+# OPCIONAL: embeddings densos (melhora o KNN — descomente se usar)
+# ─────────────────────────────────────────────────────────────
+# sentence-transformers>=2.2    # modelos: all-MiniLM-L6-v2, SPECTER2
+# torch>=2.0                    # backend para sentence-transformers
+
+# ─────────────────────────────────────────────────────────────
+# OPCIONAL: avaliação avançada (descomente se usar)
+# ─────────────────────────────────────────────────────────────
+# pytrec_eval>=0.5      # avaliação TREC (alternativa ao evaluate.py fornecido)
+# ir_measures>=0.3      # métricas IR (P@k, MAP, nDCG — alternativa)
