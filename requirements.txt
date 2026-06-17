@@ -13,6 +13,7 @@ numpy>=1.24
 
 # --- Progresso e utilitários ---
 tqdm>=4.65
+requests>=2.31
 
 # --- Pré-processamento de texto ---
 nltk>=3.8
@@ -24,6 +25,7 @@ rank_bm25>=0.2.2        # BM25
 # --- Visualização (análise e relatório) ---
 matplotlib>=3.7
 seaborn>=0.12
+notebook>=7.0
 
 # ─────────────────────────────────────────────────────────────
 # MÓDULO OPCIONAL (Mestrado: escolher 1)

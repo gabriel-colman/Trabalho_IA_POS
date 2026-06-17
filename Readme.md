@@ -245,6 +245,18 @@ Onde:
 - `1` = relevante
 - `2` = muito relevante
 
+### Resultados atuais
+
+Avaliação executada com `k=10` sobre 15 consultas e 218 julgamentos de relevância.
+
+| Sistema | P@10 | R@10 | AP | nDCG@10 |
+|---|---:|---:|---:|---:|
+| BM25 | 0.4467 | 0.4404 | 0.4899 | 0.5203 |
+| TF-IDF + KNN | 0.5133 | 0.5110 | 0.6156 | 0.6379 |
+| Híbrido RRF | **0.5467** | **0.5340** | **0.6236** | **0.6608** |
+
+O melhor desempenho médio foi obtido pelo **Híbrido RRF**, indicando que a fusão entre o ranking esparso do BM25 e o ranking vetorial por TF-IDF/KNN recupera documentos relevantes de forma mais equilibrada do que cada abordagem isolada.
+
 ---
 
 ## Observações Importantes
@@ -252,7 +264,7 @@ Onde:
 - A pasta `.venv/` não deve ser enviada ao GitHub.
 - Arquivos de cache Python (`__pycache__/`) e checkpoints de notebooks também são ignorados.
 - Os rankings são salvos no formato TREC.
-- A avaliação depende da qualidade dos julgamentos manuais em `eval/qrels.tsv`.
+- A avaliação depende da qualidade dos julgamentos em `eval/qrels.tsv`; os julgamentos atuais são uma anotação inicial assistida e devem ser revisados antes da entrega final.
 
 ---
 
